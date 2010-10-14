@@ -1,0 +1,208 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+  
+  <!-- Useful link: http://www.cs.washington.edu/info/faq/ -->
+  <!-- DON'T CRAWL THIS PAGE, WE MEAN IT :p
+    seriously, we'll block your IP address -->
+
+  <head>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <title>ProjectNomNom</title>
+  <head>
+    
+    <body>
+      
+      <div id="content">
+	<h1>ProjectNomNom</h1>
+		
+	<h2>Introduction</h2>
+	<p>
+	  Today, there are millions of cooking recipes
+	  available online. In most cases, a person will search for a recipe
+	  (either through Google or a recipe site such as
+	  <a href="http://allrecipes.com/">AllRecipes.com</a>) and once
+	  an ideal recipe is found, he or she will visit a grocery store to
+	  purchase the necessary ingredients.
+	</p>
+	<p>
+	  ProjectNomNom seeks to eliminate the visit to the grocery store by
+	  creating a specialized search engine for recipes found on
+	  <a href="http://recipes.wikia.com/wiki/Recipes_Wiki/">the recipes
+	    wiki on Wikia</a>. In the search results section, each result will
+	  include a link that will automatically fill up an
+	  <a href="http://fresh.amazon.com/">AmazonFresh</a> cart for the
+	  ingredients specified in the recipe. After the cart has been filled,
+	  the user can verify the ingredients and purchase them, all without
+	  stepping away from the computer!
+	</p>
+
+	<h2>Development Strategy</h2>
+	<p>
+	  There will be four major tasks for ProjectNomNom:
+	</p>
+	<ol>
+	  <li>Crawling and storage of recipes found on select recipe
+	    sites</li>
+	  <li>Crawling and storage of AmazonFresh's catalogue</li>
+	  <li>Extraction of ingredients from the recipes</li>
+	  <li>A search interface that will allow searches and will include links
+	    that will fill up AmazonFresh carts for each result</li>
+	</ol>
+	<p>
+	  We will focus on the recipes available on
+	  <a href="http://recipes.wikia.com/wiki/Recipes_Wiki/">the recipes wiki on Wikia</a>.
+	  This wiki
+	  has a good selection of recipes (over 43,000) and all of the recipes
+	  are well-structured, making them ideal for a web crawler. 
+	  <a href="http://crawler.archive.org/">Heritrix</a> will be used to
+	  perform the crawling. We are restricting ourselves to the recipes wiki on Wikia 
+	  in order to keep the scope of the project reasonable. The system will,
+	  however, work with data from any recipe site as long as the different
+	  attributes discussed below are scraped from the crawled pages.	  
+	</p>
+	<p>
+	  As recipes are crawled, they will be indexed and stored in
+	  <a href="http://lucene.apache.org/solr/">Solr</a> (an information
+	  retrieval platform). The attributes that we are interested in are
+	  the URL that originated the recipe, the ingredients section, the
+	  actual recipe, and recipe ratings (to help with relevance ranking 
+	  in Solr). Although all of
+	  these attributes will be indexed, we may not store all of them in the
+	  Solr index as a way of keeping the size of the index down and
+	  respecting any copyrights on the recipes.
+	</p>
+	<p>The Solr server for the recipes will provide the backend for
+	  recipe searches. The search interface will tie together the
+	  results (from crawled Wikia data) and AmazonFresh's
+	  catalogue. Next to each result, there will be a link that will allow
+	  the user to add all of the items associated with the recipe to his
+	  or her AmazonFresh cart. Of course, the user will also be able to
+	  click on the recipe to view it on the recipes wiki on Wikia. There are two
+	  preliminary mock-ups of the search interface available:
+	</p>
+	<ul>
+	  <li><a href="mock1.jpg">Mock of the homepage</a></li>
+	  <li><a href="mock2.jpg">Mock of a search results page</a></li>
+	</ul>
+	<p>Before AmazonFresh carts can be filled, we must provide a system for
+	  extracting the ingredients from the recipes. In order the aid with
+	  "ingedient-extraction", we will crawl and store AmazonFresh's
+	  catalogue (this is feasible since AmazonFresh has fewer than 150,000
+	  items in its catalogue). AmazonFresh's product pages are very
+	  consistent and well-structured which will make (once again) crawling
+	  easy. Attributes such as the item's name, price, rating, and 
+	  <a href="http://en.wikipedia.org/wiki/Amazon_Standard_Identification_Number">
+	    ASIN</a>'s will be stored in another Solr server. The product names
+	  on AmazonFresh appear to be very well formatted in that they contain
+	  simple names followed by information such as quantity and place of
+	  origin, separated by a comma.
+	</p>
+	<p>When a user searches for a recipe, the ingredients section for each
+	  recipe will be inputted as a query into the Solr server containing 
+	  AmazonFresh's data. (The ingredients section will likely be split up,
+	  perhaps by line, and multiple queries will be executed). The query
+	  will be limited to the simple names of the items in the catalogue and
+	  the results returned by Solr will indicate strong matches for phrases 
+	  in the ingredients section that appear to be ingredients. From these
+	  results, a set of items will be chosen and the ASIN's will be used
+	  to create an AmazonFresh cart. In addition, the quantities will also
+	  be parsed and selection of products will take into account the
+	  quantities represented on the recipe.
+	</p>
+	<p>
+	  Based on the accuracy of the results from using the querying method,
+	  we may also implement a machine learning algorithm such as the
+	  <a href="http://en.wikipedia.org/wiki/Naive_Bayes_classifier">Naive
+	    Bayes algorithm</a> for better results, but there are no plans to
+	  implement this as of this writing.
+	</p>
+
+	<p>Below is a high-level diagram of the system:</p>
+	<img src="ProjectNomNomFlowChart.jpg" />
+	
+	<h2>Milestones</h2>
+	<p>
+	  The following is a tentative set of checkpoints:
+	</p>
+	<ul>
+	  <li>Due by <strong>October 29</strong>:</li>
+	  <ul>
+	    <li>Set up <a href="http://www.redmine.org/">Redmine</a> for project
+	      management purposes (Josh)</li>
+	    <li>Set up <a href="http://github.com/">github</a> for project
+	      repository and train team members on its use (Ryan)</li>
+	    <li>Decide on which crawler to use and set up the Solr servers
+	    (Josh and Aryan)</li>
+	    <li>Parse the recipe pages for attributes such as title and
+	      ingredients (Roy)</li>
+	    <li>Parse AmazonFresh item titles for amounts and extraneous
+	      information (e.g., "12 oz", "non-fat") (Roy)</li>
+	    <li>Crawl data from the recipe site and AmazonFresh and index the
+	      data into Solr (Josh and Aryan)</li>
+	    <li>Research web servers and set one up that will support both Java
+	      and PHP (likely <a href="http://tomcat.apache.org/">Apache Tomcat
+		</a>) (Ryan)</li>
+	    <li>Complete mock-ups of all of the UI components and a prototype
+	    for dynamic search results (Noe)</li>
+	  </ul>
+	  <li>Due by <strong>November 17</strong>:</li>
+	  <ul>
+	    <li>Create working version of user-interface</li>
+	    <li>Implement ingredient-extraction and backend for mapping recipe
+	      items to AmazonFresh' catalogue</li>
+	    <li>Create product recommendation conflict resolution process</li>
+	  </ul>
+	  <li>Due by <strong>December 3</strong>:</li>
+	  <ul>
+	    <li>Evaluate ingredient-extraction accuracy and implement machine
+	      learning algorithm, if necessary</li>
+	    <li>Start write-up and evaluation</li>
+	  </ul>
+	  <li>Due by <strong>December 14</strong>:</li>
+	  <ul>
+	    <li>Present and evaluate project</li>
+	  </ul>
+	</ul>
+	
+	<h2>Evaluation</h2>
+	<p>
+	  The following are some of the tests that we will perform to evaluate
+	  ProjectNomNom's effectiveness:
+	</p>
+	<ul>
+	  <li>Test the effectiveness of recipe searching by trying different
+	    queries and checking the proportion of results that are valid in
+	    the top 10 results.</li>
+	  <li>Test the effectiveness of the ingredient-extractor by grabbing a
+	    random sample of recipes and seeing how many of the ingredients in
+	    the ingredient-section are recognized.</li>
+	  <li>Test the effectiveness of the ingredient-extractor using recipes
+	    for some common and exotic food items such as:</li>
+	  <ul>
+	    <li>Easy: spaghetti, meatload, mashed potatoes</li>
+	    <li>Medium: hummus, sourdough, lemon</li>
+	    <li>Hard: borscht, turdunken, tabouli</li>
+	  </ul>	     
+	  <li>Test how well the algorithm chooses an item from a set of similar
+	    items (i.e., do product ratings and price affect the decision
+	    properly).</li>
+	</ul>
+
+	<h2>Team Members</h2>
+	<p>
+	  The team is comprised of the following people:
+	</p>
+	<ul>
+	  <li>Noe Khalfa (noekh@cs)</li>
+	  <li>Roy McElmurry (roy@cs)</li>
+	  <li>Josh Mottaz (gerhalt@cs)</li>
+	  <li>Aryan Naraghi (aryan@cs)</li>
+	  <li>Ryan Oman (namos@cs)</li>
+	</ul>
+
+
+      </div>
+
+    </body>
+</html>
